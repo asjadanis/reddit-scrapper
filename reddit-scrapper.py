@@ -50,14 +50,14 @@ class MemeCollector:
   def save_memes(self):
     print 'Writing Memes to disk...'
     allowed_image_extensions = ['.jpg', '.jpeg', '.png']
-    allowed_gif_extensions = ['.gif']
+    allowed_gif_extensions = ['.gif', '.gifv']
     for index, url in enumerate(self.meme_urls):
       _, ext = os.path.splitext(url)
       if ext in allowed_image_extensions:
         try:
           urllib.urlretrieve(self.meme_urls[index], './memes/' + self.meme_titles[index] + ext)
         except:
-          print 'something went wrong while copying ', self.meme_urls[index], self.meme_titles[index]
+          print 'something went wrong while downloading ', self.meme_urls[index]
     print 'Done writing memes !!!'
     print 'Writing gifs to disk...'
     for index, url in enumerate(self.gif_urls):
@@ -66,8 +66,7 @@ class MemeCollector:
         try:
           urllib.urlretrieve(self.gif_urls[index], './gifs/' + self.gif_titles[index] + ext)
         except:
-          print 'something went wrong while copying ', self.gif_urls[index], self.gif_titles[index]
-    print 'Done writing gifs !!!'
+          print 'something went wrong while downloading ', self.gif_urls[index]
 
   def export_to_csv(self):
     dataframe = pd.DataFrame({
