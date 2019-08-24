@@ -7,40 +7,40 @@ import datetime
 
 class RedditCollector:
   def __init__(self, client_id, client_secret, user_agent, subreddits_list, limit, username, password):
-
+    
     self.client_id = client_id
     self.client_secret = client_secret
     self.user_agent = user_agent
     self.subreddits_list = subreddits_list
     self.limit = limit
-    self.image_urls = []
-    self.image_titles = []
-    self.image_scores = []
-    self.image_timestamps = []
-    self.image_ids = []
-    self.gif_urls = []
-    self.gif_titles = []
-    self.gif_scores = []
-    self.gif_timestamps = []
-    self.gif_ids = []
-    self.posts = []
-    self.post_titles = []
-    self.post_scores = []
-    self.post_urls = []
-    self.post_ids = []
-    self.post_timestamps = []
-    self.post_text = []
     self.reddit = praw.Reddit(client_id = self.client_id, client_secret = self.client_secret, user_agent = self.user_agent, username=username, password=password)
-    print 'Reddit User: ', self.reddit.user.me()
+    print '>>> Reddit User: ', self.reddit.user.me()
 
 
 
   def collect_data(self):
-    print 'Fetching data...'
+    print '>>> Fetching data... \n\n'
     allowed_image_extensions = ['.jpg', '.jpeg', '.png']
     allowed_gif_extensions = ['.gif']
     for subreddit_name in self.subreddits_list:
-      subreddit = self.reddit.subreddit(subreddit_name)
+      self.image_urls = []
+      self.image_titles = []
+      self.image_scores = []
+      self.image_timestamps = []
+      self.image_ids = []
+      self.gif_urls = []
+      self.gif_titles = []
+      self.gif_scores = []
+      self.gif_timestamps = []
+      self.gif_ids = []
+      self.posts = []
+      self.post_titles = []
+      self.post_scores = []
+      self.post_urls = []
+      self.post_ids = []
+      self.post_timestamps = []
+      self.post_text = []
+      subreddit = self.reddit.subreddit(subreddit_name)  
       posts = subreddit.hot(limit=self.limit)
       for post in posts:
         _, ext = os.path.splitext(post.url)
@@ -63,45 +63,56 @@ class RedditCollector:
           self.post_timestamps.append(datetime.datetime.fromtimestamp(post.created))
           self.post_ids.append(post.id)
           self.post_text.append(post.selftext.encode('utf-8'))
-    print 'Data Fetched !!!'
+      self.save_data(subreddit=subreddit_name)  
 
-  def save_data(self):
-    print 'Writing to disk...'
-    
+  def save_data(self, subreddit):
+    print '>>> Writing ', subreddit, ' data to disk... \n\n'
+
+    dirpath = os.path.join('./', subreddit)
+    if not os.path.exists(dirpath):
+      os.mkdir(dirpath)
+
     allowed_image_extensions = ['.jpg', '.jpeg', '.png']
     allowed_gif_extensions = ['.gif', '.gifv']
     
     if len(self.image_ids) > 0:
-      if not os.path.exists('./images'):
-        os.mkdir('./images')
+      images_path = os.path.join(dirpath, 'images/')
+      if not os.path.exists(images_path):
+        os.mkdir(images_path)
     
     if len(self.gif_ids) > 0:
-      if not os.path.exists('./gifs'):
-        os.mkdir('./gifs')
+      gifs_path = os.path.join(dirpath, 'gifs/')
+      if not os.path.exists(gifs_path):
+        os.mkdir(gifs_path)
     
     if len(self.post_ids) > 0:
-      if not os.path.exists('./posts'):
-        os.mkdir('./posts')
+      posts_path = os.path.join(dirpath, 'posts/')
+      if not os.path.exists(posts_path):
+        os.mkdir(posts_path)
 
     for index, url in enumerate(self.image_urls):
       _, ext = os.path.splitext(url)
       if ext in allowed_image_extensions:
         try:
-          print 'downloading ', self.image_urls[index]
-          urllib.urlretrieve(self.image_urls[index], './images/' + self.image_titles[index] + ext)
+          print '>>> downloading ', self.image_urls[index], ' in ', images_path + self.image_titles[index] + ext
+          urllib.urlretrieve(self.image_urls[index], images_path + self.image_titles[index] + ext)
         except:
-          print 'something went wrong while downloading ', self.image_urls[index]
+          print '>>> something went wrong while downloading ', self.image_urls[index]
     for index, url in enumerate(self.gif_urls):
       _, ext = os.path.splitext(url)
       if ext in allowed_gif_extensions:
         try:
-          print 'downloading ', self.gif_urls[index]
-          urllib.urlretrieve(self.gif_urls[index], './gifs/' + self.gif_titles[index] + ext)
+          print '>>> downloading ', self.gif_urls[index], ' in ', gifs_path + self.gif_titles[index] + ext
+          urllib.urlretrieve(self.gif_urls[index], gifs_path + self.gif_titles[index] + ext)
         except:
-          print 'something went wrong while downloading ', self.gif_urls[index]
-    print "Done writing data !!!"
-  def export_to_csv(self):
+          print '>>> something went wrong while downloading ', self.gif_urls[index]
+    self.export_to_csv(dirpath=dirpath)
+    print "\n>>> Done writing data !!! \n\n"
+
+
+  def export_to_csv(self, dirpath):
     if len(self.image_ids) > 0:
+      images_path = os.path.join(dirpath, 'images', 'images.csv')
       dataframe = pd.DataFrame({
         'Title': self.image_titles,
         'Score': self.image_scores,
@@ -109,9 +120,10 @@ class RedditCollector:
         'Timestamp': self.image_timestamps,
         'ID': self.image_ids
       })
-      csv = dataframe.to_csv(r'./images/images.csv', index=True, header=True)
+      csv = dataframe.to_csv(images_path, index=True, header=True)
     
     if len(self.gif_ids) > 0:
+      gifs_path = os.path.join(dirpath, 'gifs', 'gifs.csv')
       dataframe = pd.DataFrame({
         'Title': self.gif_titles,
         'Score': self.gif_scores,
@@ -119,9 +131,10 @@ class RedditCollector:
         'Timestamp': self.gif_timestamps,
         'ID': self.gif_ids
       })
-      csv = dataframe.to_csv(r'./gifs/gifs.csv', index=True, header=True)
+      csv = dataframe.to_csv(gifs_path, index=True, header=True)
 
     if len(self.post_ids) > 0:
+      posts_path = os.path.join(dirpath, 'posts', 'posts.csv')
       dataframe = pd.DataFrame({
         'Title': self.post_titles,
         'Score': self.post_scores,
@@ -130,7 +143,7 @@ class RedditCollector:
         'ID': self.post_ids,
         'Text': self.post_text
       })
-      csv = dataframe.to_csv(r'./posts/posts.csv', index=True, header=True)
+      csv = dataframe.to_csv(posts_path, index=True, header=True)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description = 'A script to collect images/gifs from reddit')
@@ -150,6 +163,4 @@ if __name__ == "__main__":
                                 limit=args.limit,
                                 username=args.username,
                                 password=args.password)
-  # data_collector.collect_data()
-  # data_collector.save_data()
-  # data_collector.export_to_csv()
+  data_collector.collect_data()
