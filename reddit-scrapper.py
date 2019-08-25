@@ -4,6 +4,8 @@ import urllib
 import os
 import pandas as pd
 import datetime
+from bs4 import BeautifulSoup
+import requests
 
 class RedditCollector:
   def __init__(self, client_id, client_secret, user_agent, subreddits_list, limit, username, password):
@@ -40,10 +42,17 @@ class RedditCollector:
       self.post_ids = []
       self.post_timestamps = []
       self.post_text = []
+      
+      self.other_urls = []
+      self.other_titles = []
+      self.other_scores = []
+      self.other_timestamps = []
+      self.other_ids = []
       subreddit = self.reddit.subreddit(subreddit_name)  
       posts = subreddit.hot(limit=self.limit)
       for post in posts:
         _, ext = os.path.splitext(post.url)
+        # print post.url
         if ext in allowed_image_extensions:
           self.image_urls.append(post.url.encode('utf-8'))
           self.image_titles.append(post.title.encode('utf-8'))
@@ -63,6 +72,13 @@ class RedditCollector:
           self.post_timestamps.append(datetime.datetime.fromtimestamp(post.created))
           self.post_ids.append(post.id)
           self.post_text.append(post.selftext.encode('utf-8'))
+        else:
+          self.other_urls.append(post.url.encode('utf-8'))
+          self.other_titles.append(post.title.encode('utf-8'))
+          self.other_scores.append(post.score)
+          self.other_timestamps.append(datetime.datetime.fromtimestamp(post.created))
+          self.other_ids.append(post.id)
+
       self.save_data(subreddit=subreddit_name)  
 
   def save_data(self, subreddit):
@@ -89,6 +105,11 @@ class RedditCollector:
       posts_path = os.path.join(dirpath, 'posts/')
       if not os.path.exists(posts_path):
         os.mkdir(posts_path)
+    
+    if len(self.other_ids) > 0:
+      others_path = os.path.join(dirpath, 'others/')
+      if not os.path.exists(others_path):
+        os.mkdir(others_path)
 
     for index, url in enumerate(self.image_urls):
       _, ext = os.path.splitext(url)
@@ -106,6 +127,18 @@ class RedditCollector:
           urllib.urlretrieve(self.gif_urls[index], gifs_path + self.gif_titles[index] + ext)
         except:
           print '>>> something went wrong while downloading ', self.gif_urls[index]
+    for index, url in enumerate(self.other_urls):
+      try:
+        print '>>> downloading ', self.other_urls[index], ' in ', others_path + self.other_titles[index]
+        if 'gfycat' in self.other_urls[index]:
+          self.other_urls[index] = self.other_urls[index] + '.gif'
+          page = requests.get(self.other_urls[index])
+          soup = BeautifulSoup(page.content, 'html.parser')
+          if soup.find('source', attrs={'id': 'mp4Source'}) is not None:
+            gif_source = soup.find('source', attrs={'id': 'mp4Source'})['src']
+            urllib.urlretrieve(gif_source , others_path + self.other_titles[index] + '.mp4')
+      except:
+        print '>>> something went wrong while downloading ', self.other_urls[index]
     self.export_to_csv(dirpath=dirpath)
     print "\n>>> Done writing data !!! \n\n"
 
@@ -144,6 +177,17 @@ class RedditCollector:
         'Text': self.post_text
       })
       csv = dataframe.to_csv(posts_path, index=True, header=True)
+
+    if len(self.other_ids) > 0:
+      others_path = os.path.join(dirpath, 'others', 'others.csv')
+      dataframe = pd.DataFrame({
+        'Title': self.other_titles,
+        'Score': self.other_scores,
+        'Url': self.other_urls,
+        'Timestamp': self.other_timestamps,
+        'ID': self.other_ids,
+      })
+      csv = dataframe.to_csv(others_path, index=True, header=True)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description = 'A script to collect images/gifs from reddit')
