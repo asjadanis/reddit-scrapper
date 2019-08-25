@@ -61,13 +61,13 @@ class RedditCollector:
           self.image_scores.append(post.score)
           self.image_timestamps.append(datetime.datetime.fromtimestamp(post.created))
           self.image_ids.append(post.id)
-        if ext in allowed_gif_extensions:
+        elif ext in allowed_gif_extensions:
           self.gif_urls.append(post.url)
           self.gif_titles.append(post.title.encode('utf-8'))
           self.gif_scores.append(post.score)
           self.gif_timestamps.append(datetime.datetime.fromtimestamp(post.created))
           self.gif_ids.append(post.id)
-        if post.is_self:
+        elif post.is_self:
           self.post_urls.append(post.url.encode('utf-8'))
           self.post_titles.append(post.title.encode('utf-8'))
           self.post_scores.append(post.score)
@@ -139,6 +139,12 @@ class RedditCollector:
           if soup.find('source', attrs={'id': 'mp4Source'}) is not None:
             gif_source = soup.find('source', attrs={'id': 'mp4Source'})['src']
             urllib.urlretrieve(gif_source , others_path + self.other_titles[index] + '.mp4')
+        else:
+          _, ext = os.path.splitext(url)
+          if ext in allowed_gif_extensions:
+            print '>>> downloading ', self.gif_urls[index], ' in ', gifs_path + self.gif_titles[index] + ext
+            urllib.urlretrieve(self.gif_urls[index], gifs_path + self.gif_titles[index] + ext)
+            print '>>> something went wrong while downloading ', self.gif_urls[index]
       except:
         print '>>> something went wrong while downloading ', self.other_urls[index]
     self.export_to_csv(dirpath=dirpath)
