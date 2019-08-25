@@ -30,11 +30,13 @@ class RedditCollector:
       self.image_scores = []
       self.image_timestamps = []
       self.image_ids = []
+
       self.gif_urls = []
       self.gif_titles = []
       self.gif_scores = []
       self.gif_timestamps = []
       self.gif_ids = []
+      
       self.posts = []
       self.post_titles = []
       self.post_scores = []
