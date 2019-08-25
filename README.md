@@ -8,6 +8,8 @@ A python script using [PRAW](https://praw.readthedocs.io/en/latest/index.html) t
 
 ## Getting Started
 
+[Refer to my blogpost](https://medium.com/@asjadanis128/scraping-memes-from-reddit-55842273b3e1)
+
 First setup a reddit app from [here](https://www.reddit.com/prefs/apps) <br>
 
 make sure you put http://localhost:8080 in the redirect url field <br>
