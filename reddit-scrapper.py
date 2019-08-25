@@ -54,7 +54,7 @@ class RedditCollector:
       posts = subreddit.hot(limit=self.limit)
       for post in posts:
         _, ext = os.path.splitext(post.url)
-        # print post.url
+        
         if ext in allowed_image_extensions:
           self.image_urls.append(post.url.encode('utf-8'))
           self.image_titles.append(post.title.encode('utf-8'))
