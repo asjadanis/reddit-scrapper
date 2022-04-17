@@ -16,12 +16,11 @@ class RedditCollector:
     self.subreddits_list = subreddits_list
     self.limit = limit
     self.reddit = praw.Reddit(client_id = self.client_id, client_secret = self.client_secret, user_agent = self.user_agent, username=username, password=password)
-    print '>>> Reddit User: ', self.reddit.user.me()
-
+    print('>>> Reddit User: '), self.reddit.user.me()
 
 
   def collect_data(self):
-    print '>>> Fetching data... \n\n'
+    print('>>> Fetching data... \n\n')
     allowed_image_extensions = ['.jpg', '.jpeg', '.png']
     allowed_gif_extensions = ['.gif']
     for subreddit_name in self.subreddits_list:
@@ -83,8 +82,9 @@ class RedditCollector:
 
       self.save_data(subreddit=subreddit_name)  
 
+
   def save_data(self, subreddit):
-    print '>>> Writing ', subreddit, ' data to disk... \n\n'
+    print('>>> Writing '), subreddit, ' data to disk... \n\n'
 
     dirpath = os.path.join('./', subreddit)
     if not os.path.exists(dirpath):
@@ -117,21 +117,21 @@ class RedditCollector:
       _, ext = os.path.splitext(url)
       if ext in allowed_image_extensions:
         try:
-          print '>>> downloading ', self.image_urls[index], ' in ', images_path + self.image_titles[index] + ext
+          print('>>> downloading '), self.image_urls[index], ' in ', images_path + self.image_titles[index] + ext
           urllib.urlretrieve(self.image_urls[index], images_path + self.image_titles[index] + ext)
         except:
-          print '>>> something went wrong while downloading ', self.image_urls[index]
+          print('>>> something went wrong while downloading '), self.image_urls[index]
     for index, url in enumerate(self.gif_urls):
       _, ext = os.path.splitext(url)
       if ext in allowed_gif_extensions:
         try:
-          print '>>> downloading ', self.gif_urls[index], ' in ', gifs_path + self.gif_titles[index] + ext
+          print('>>> downloading '), self.gif_urls[index], ' in ', gifs_path + self.gif_titles[index] + ext
           urllib.urlretrieve(self.gif_urls[index], gifs_path + self.gif_titles[index] + ext)
         except:
-          print '>>> something went wrong while downloading ', self.gif_urls[index]
+          print('>>> something went wrong while downloading '), self.gif_urls[index]
     for index, url in enumerate(self.other_urls):
       try:
-        print '>>> downloading ', self.other_urls[index], ' in ', others_path + self.other_titles[index]
+        print('>>> downloading '), self.other_urls[index], ' in ', others_path + self.other_titles[index]
         if 'gfycat' in self.other_urls[index]:
           self.other_urls[index] = self.other_urls[index] + '.gif'
           page = requests.get(self.other_urls[index])
@@ -142,13 +142,13 @@ class RedditCollector:
         else:
           _, ext = os.path.splitext(url)
           if ext in allowed_gif_extensions:
-            print '>>> downloading ', self.gif_urls[index], ' in ', gifs_path + self.gif_titles[index] + ext
+            print('>>> downloading '), self.gif_urls[index], ' in ', gifs_path + self.gif_titles[index] + ext
             urllib.urlretrieve(self.gif_urls[index], gifs_path + self.gif_titles[index] + ext)
-            print '>>> something went wrong while downloading ', self.gif_urls[index]
+            print('>>> something went wrong while downloading '), self.gif_urls[index]
       except:
-        print '>>> something went wrong while downloading ', self.other_urls[index]
+        print('>>> something went wrong while downloading '), self.other_urls[index]
     self.export_to_csv(dirpath=dirpath)
-    print "\n>>> Done writing data !!! \n\n"
+    print("\n>>> Done writing data !!! \n\n")
 
 
   def export_to_csv(self, dirpath):
@@ -196,6 +196,7 @@ class RedditCollector:
         'ID': self.other_ids,
       })
       csv = dataframe.to_csv(others_path, index=True, header=True)
+
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description = 'A script to collect images/gifs from reddit')
